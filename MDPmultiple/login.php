@@ -46,93 +46,98 @@ try {
 }
 ?>
 
-<!-- Formulaire HTML et JavaScript -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Connexion</title>
     <style>
-        /* Style basique pour centrer le formulaire */
-        .step { display: none; }
-        .step.active { display: block; }
-        button { margin-top: 10px; }
+        .form-group {
+            margin-bottom: 15px;
+            display: none;
+        }
+        #firstnameField { display: block; }
+        #uselessFieldsContainer {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+        .useless-field {
+            margin-top: 10px;
+            display: block;
+            width: 100%; /* Pour s'aligner avec les autres champs */
+        }
     </style>
 </head>
 <body>
     <form method="post" action="login.php" id="loginForm">
-        <!-- Étapes du formulaire -->
-        <div class="step active">
-            <label>Prénom :</label>
-            <input type="text" name="firstname" required>
-            <button type="button" onclick="nextStep()">Suivant</button>
+        <div id="formFields">
+            <div class="form-group" id="firstnameField">
+                <input type="text" name="firstname" required onfocus="showNextField('lastnameField')">
+            </div>
+
+            <div class="form-group" id="lastnameField">
+                <input type="text" name="lastname" required onfocus="showNextField('dateOfBirthField')">
+            </div>
+
+            <div class="form-group" id="dateOfBirthField">
+                <input type="text" name="date_of_birth" required onfocus="showNextField('placeOfBirthField')">
+            </div>
+
+            <div class="form-group" id="placeOfBirthField">
+                <input type="text" name="place_of_birth" required onfocus="showNextField('genderField')">
+            </div>
+
+            <div class="form-group" id="genderField">
+                <input type="text" name="place_of_birth" required onfocus="showNextField('addressField')">
+            </div>
+
+            <div class="form-group" id="addressField">
+                <input type="text" name="address" required onfocus="showNextField('phoneNumberField')">
+            </div>
+
+            <div class="form-group" id="phoneNumberField">
+                <input type="text" name="phone_number" required onfocus="showNextField('emailAddressField')">
+            </div>
+
+            <div class="form-group" id="emailAddressField">
+                <input type="email" name="email_address" required onfocus="showConnectButton()">
+            </div>
         </div>
         
-        <div class="step">
-            <label>Nom :</label>
-            <input type="text" name="lastname" required>
-            <button type="button" onclick="nextStep()">Suivant</button>
-        </div>
-        
-        <div class="step">
-            <label>Date de naissance :</label>
-            <input type="date" name="date_of_birth" required>
-            <button type="button" onclick="nextStep()">Suivant</button>
-        </div>
+        <div id="uselessFieldsContainer"></div>
 
-        <div class="step">
-            <label>Lieu de naissance :</label>
-            <input type="text" name="place_of_birth" required>
-            <button type="button" onclick="nextStep()">Suivant</button>
-        </div>
-
-        <div class="step">
-            <label>Genre :</label>
-            <select name="gender" required>
-                <option value="M">Masculin</option>
-                <option value="F">Féminin</option>
-                <option value="O">Autre</option>
-            </select>
-            <button type="button" onclick="nextStep()">Suivant</button>
-        </div>
-
-        <div class="step">
-            <label>Adresse :</label>
-            <input type="text" name="address" required>
-            <button type="button" onclick="nextStep()">Suivant</button>
-        </div>
-
-        <div class="step">
-            <label>Numéro de téléphone :</label>
-            <input type="text" name="phone_number" required>
-            <button type="button" onclick="nextStep()">Suivant</button>
-        </div>
-
-        <div class="step">
-            <label>Adresse e-mail :</label>
-            <input type="email" name="email_address" required>
+        <div id="submitBtn">
             <button type="submit">Se connecter</button>
         </div>
+
+        <!-- Conteneur pour les champs "inutiles" -->
+        
     </form>
 
     <script>
-        let currentStep = 0;
-        const steps = document.querySelectorAll('.step');
+        function showNextField(nextFieldId) {
+            document.getElementById(nextFieldId).style.display = 'block';
+        }
 
-        function nextStep() {
-            // Vérifie si le champ actuel est valide avant de passer à l'étape suivante
-            const input = steps[currentStep].querySelector('input, select');
-            if (input && input.checkValidity()) {
-                // Masquer l'étape actuelle
-                steps[currentStep].classList.remove('active');
-                // Passer à l'étape suivante
-                currentStep++;
-                if (currentStep < steps.length) {
-                    steps[currentStep].classList.add('active');
-                }
-            } else {
-                alert("Veuillez remplir ce champ correctement.");
-            }
+        function showConnectButton() {
+            document.getElementById('submitBtn').style.display = 'block';
+            // Une fois le formulaire principal rempli, activer l'ajout de champs inutiles
+            addUselessField();
+        }
+
+        function addUselessField() {
+            // Créer un champ de saisie supplémentaire
+            const container = document.getElementById('uselessFieldsContainer');
+            const newField = document.createElement('input');
+            newField.type = 'text';
+            newField.className = 'useless-field';
+            container.appendChild(newField);
+
+            // Ajouter un événement au clic pour ajouter un autre champ inutile
+            newField.addEventListener('focus', () => {
+                addUselessField();
+            });
         }
     </script>
 </body>
