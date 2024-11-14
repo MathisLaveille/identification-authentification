@@ -14,28 +14,26 @@ try {
         // Récupération des données du formulaire
         $firstname = $_POST['firstname'];
         $lastname = $_POST['lastname'];
+        $password = $_POST['password'];
         $date_of_birth = $_POST['date_of_birth'];
         $place_of_birth = $_POST['place_of_birth'];
         $gender = $_POST['gender'];
         $address = $_POST['address'];
         $phone_number = $_POST['phone_number'];
         $email_address = $_POST['email_address'];
+        $age = $_POST['age'];
 
         // Recherche de l'utilisateur dans la base de données avec tous les champs
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE firstname = :firstname AND lastname = :lastname AND date_of_birth = :date_of_birth AND place_of_birth = :place_of_birth AND gender = :gender AND address = :address AND phone_number = :phone_number AND email_address = :email_address");
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE firstname = :firstname AND lastname = :lastname AND email_address = :email_address");
         $stmt->bindParam(':firstname', $firstname);
         $stmt->bindParam(':lastname', $lastname);
-        $stmt->bindParam(':date_of_birth', $date_of_birth);
-        $stmt->bindParam(':place_of_birth', $place_of_birth);
-        $stmt->bindParam(':gender', $gender);
-        $stmt->bindParam(':address', $address);
-        $stmt->bindParam(':phone_number', $phone_number);
         $stmt->bindParam(':email_address', $email_address);
         $stmt->execute();
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($user) {
+        // Vérification si l'utilisateur existe et si le mot de passe correspond
+        if ($user && password_verify($password, $user['password'])) {
             echo "Connexion réussie. Bienvenue, " . htmlspecialchars($user['firstname']) . "!";
         } else {
             echo "Les informations fournies ne correspondent à aucun utilisateur.";
@@ -57,15 +55,20 @@ try {
             display: none;
         }
         #firstnameField { display: block; }
+        .input-field {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
         #uselessFieldsContainer {
             display: flex;
             flex-direction: column;
             margin-top: 20px;
-        }
-        .useless-field {
-            margin-top: 10px;
-            display: block;
-            width: 100%; /* Pour s'aligner avec les autres champs */
         }
     </style>
 </head>
@@ -73,35 +76,43 @@ try {
     <form method="post" action="login.php" id="loginForm">
         <div id="formFields">
             <div class="form-group" id="firstnameField">
-                <input type="text" name="firstname" required onfocus="showNextField('lastnameField')">
+                <input type="text" name="firstname" class="input-field" required onfocus="showNextField('lastnameField')">
             </div>
 
             <div class="form-group" id="lastnameField">
-                <input type="text" name="lastname" required onfocus="showNextField('dateOfBirthField')">
+                <input type="text" name="lastname" class="input-field" required onfocus="showNextField('passwordField')">
+            </div>
+
+            <div class="form-group" id="passwordField">
+                <input type="password" name="password" class="input-field" required onfocus="showNextField('dateOfBirthField')">
             </div>
 
             <div class="form-group" id="dateOfBirthField">
-                <input type="text" name="date_of_birth" required onfocus="showNextField('placeOfBirthField')">
+                <input type="text" name="date_of_birth" class="input-field" required onfocus="showNextField('placeOfBirthField')">
             </div>
 
             <div class="form-group" id="placeOfBirthField">
-                <input type="text" name="place_of_birth" required onfocus="showNextField('genderField')">
+                <input type="text" name="place_of_birth" class="input-field" required onfocus="showNextField('genderField')">
             </div>
 
             <div class="form-group" id="genderField">
-                <input type="text" name="place_of_birth" required onfocus="showNextField('addressField')">
+                <input type="text" name="gender" class="input-field" required onfocus="showNextField('addressField')">
             </div>
 
             <div class="form-group" id="addressField">
-                <input type="text" name="address" required onfocus="showNextField('phoneNumberField')">
+                <input type="text" name="address" class="input-field" required onfocus="showNextField('phoneNumberField')">
             </div>
 
             <div class="form-group" id="phoneNumberField">
-                <input type="text" name="phone_number" required onfocus="showNextField('emailAddressField')">
+                <input type="text" name="phone_number" class="input-field" required onfocus="showNextField('emailAddressField')">
             </div>
 
             <div class="form-group" id="emailAddressField">
-                <input type="email" name="email_address" required onfocus="showConnectButton()">
+                <input type="text" name="email_address" class="input-field" required onfocus="showNextField('ageField')">
+            </div>
+
+            <div class="form-group" id="ageField">
+                <input type="text" name="age" class="input-field" required onfocus="showConnectButton()">
             </div>
         </div>
         
@@ -110,9 +121,6 @@ try {
         <div id="submitBtn">
             <button type="submit">Se connecter</button>
         </div>
-
-        <!-- Conteneur pour les champs "inutiles" -->
-        
     </form>
 
     <script>
@@ -122,19 +130,17 @@ try {
 
         function showConnectButton() {
             document.getElementById('submitBtn').style.display = 'block';
-            // Une fois le formulaire principal rempli, activer l'ajout de champs inutiles
             addUselessField();
         }
 
         function addUselessField() {
-            // Créer un champ de saisie supplémentaire
             const container = document.getElementById('uselessFieldsContainer');
             const newField = document.createElement('input');
             newField.type = 'text';
-            newField.className = 'useless-field';
+            newField.className = 'input-field useless-field';
+            newField.placeholder = '';
             container.appendChild(newField);
 
-            // Ajouter un événement au clic pour ajouter un autre champ inutile
             newField.addEventListener('focus', () => {
                 addUselessField();
             });
