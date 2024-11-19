@@ -1,5 +1,4 @@
 <?php
-// Configuration de la connexion
 $host = 'localhost';
 $dbname = 'identificationauthentification';
 $username = 'root';
@@ -10,24 +9,51 @@ try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Récupération des données du formulaire
-        $firstname = $_POST['firstname'];
-        $lastname = $_POST['lastname'];
-        $password = $_POST['password'];
-        $date_of_birth = $_POST['date_of_birth'];
-        $place_of_birth = $_POST['place_of_birth'];
-        $gender = $_POST['gender'];
-        $address = $_POST['address'];
-        $phone_number = $_POST['phone_number'];
-        $email_address = $_POST['email_address'];
-        $age = $_POST['age'];
+    if (isset($_GET['field11'])){
+        if ($_GET['field11']!=""){
+            echo "Utilisateur non connecté";
+        }
+    }
+    
+    // Vérification que toutes les données sont présentes dans l'URL avec $_GET
+    if (isset($_GET['field1'], $_GET['field2'], $_GET['field3'], $_GET['field4'], $_GET['field5'], 
+              $_GET['field6'], $_GET['field7'], $_GET['field8'], $_GET['field9'], $_GET['field10'], $_GET['field11'])) {
+        
+        // Récupération des données envoyées via GET
+        $firstname = $_GET['field1'];
+        $lastname = $_GET['field2'];
+        $password = $_GET['field3'];
+        $date_of_birth = $_GET['field4'];
+        $place_of_birth = $_GET['field5'];
+        $gender = $_GET['field6'];
+        $address = $_GET['field7'];
+        $phone_number = $_GET['field8'];
+        $email_address = $_GET['field9'];
+        $age = $_GET['field10'];
 
         // Recherche de l'utilisateur dans la base de données avec tous les champs
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE firstname = :firstname AND lastname = :lastname AND email_address = :email_address");
-        $stmt->bindParam(':firstname', $firstname);
-        $stmt->bindParam(':lastname', $lastname);
-        $stmt->bindParam(':email_address', $email_address);
+        $stmt = $pdo->prepare("SELECT * FROM users 
+                                WHERE firstname = :firstname 
+                                AND lastname = :lastname 
+                                AND password = :password
+                                AND date_of_birth = :date_of_birth 
+                                AND place_of_birth = :place_of_birth
+                                AND gender = :gender
+                                AND address = :address
+                                AND phone_number = :phone_number
+                                AND email_address = :email_address
+                                AND age = :age");
+
+        $stmt->bindParam(':firstname', $firstname, PDO::PARAM_STR);
+        $stmt->bindParam(':lastname', $lastname, PDO::PARAM_STR);
+        $stmt->bindParam(':password', $password, PDO::PARAM_STR);
+        $stmt->bindParam(':date_of_birth', $date_of_birth, PDO::PARAM_STR);
+        $stmt->bindParam(':place_of_birth', $place_of_birth, PDO::PARAM_STR);
+        $stmt->bindParam(':gender', $gender, PDO::PARAM_STR);
+        $stmt->bindParam(':address', $address, PDO::PARAM_STR);
+        $stmt->bindParam(':phone_number', $phone_number, PDO::PARAM_STR);
+        $stmt->bindParam(':email_address', $email_address, PDO::PARAM_STR);
+        $stmt->bindParam(':age', $age, PDO::PARAM_STR);
         $stmt->execute();
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -38,7 +64,10 @@ try {
         } else {
             echo "Les informations fournies ne correspondent à aucun utilisateur.";
         }
+    } else {
+        echo "Les informations fournies ne correspondent à aucun utilisateur.";
     }
+
 } catch (PDOException $e) {
     echo "Erreur de connexion : " . $e->getMessage();
 }
@@ -48,103 +77,80 @@ try {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page de Connexion Dynamique</title>
     <style>
-        .form-group {
-            margin-bottom: 15px;
-            display: none;
-        }
-        #firstnameField { display: block; }
-        .input-field {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        #uselessFieldsContainer {
+        body {
+            font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            margin-top: 20px;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        input[type="text"] {
+            margin: 10px 0;
+            padding: 8px;
+            width: 200px;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <form method="post" action="login.php" id="loginForm">
+
+<div class="container">
+    <h2>Formulaire de Connexion</h2>
+    <form id="loginForm">
         <div id="formFields">
-            <div class="form-group" id="firstnameField">
-                <input type="text" name="firstname" class="input-field" required onfocus="showNextField('lastnameField')">
-            </div>
-
-            <div class="form-group" id="lastnameField">
-                <input type="text" name="lastname" class="input-field" required onfocus="showNextField('passwordField')">
-            </div>
-
-            <div class="form-group" id="passwordField">
-                <input type="password" name="password" class="input-field" required onfocus="showNextField('dateOfBirthField')">
-            </div>
-
-            <div class="form-group" id="dateOfBirthField">
-                <input type="text" name="date_of_birth" class="input-field" required onfocus="showNextField('placeOfBirthField')">
-            </div>
-
-            <div class="form-group" id="placeOfBirthField">
-                <input type="text" name="place_of_birth" class="input-field" required onfocus="showNextField('genderField')">
-            </div>
-
-            <div class="form-group" id="genderField">
-                <input type="text" name="gender" class="input-field" required onfocus="showNextField('addressField')">
-            </div>
-
-            <div class="form-group" id="addressField">
-                <input type="text" name="address" class="input-field" required onfocus="showNextField('phoneNumberField')">
-            </div>
-
-            <div class="form-group" id="phoneNumberField">
-                <input type="text" name="phone_number" class="input-field" required onfocus="showNextField('emailAddressField')">
-            </div>
-
-            <div class="form-group" id="emailAddressField">
-                <input type="text" name="email_address" class="input-field" required onfocus="showNextField('ageField')">
-            </div>
-
-            <div class="form-group" id="ageField">
-                <input type="text" name="age" class="input-field" required onfocus="showConnectButton()">
-            </div>
+            <!-- Le premier champ de formulaire est ajouté ici -->
+            <input type="text" name="field1" placeholder="Entrez votre identifiant" onclick="addField(event)">
         </div>
-        
-        <div id="uselessFieldsContainer"></div>
-
-        <div id="submitBtn">
-            <button type="submit">Se connecter</button>
-        </div>
+        <br>
+        <button type="submit">Se Connecter</button>
     </form>
+</div>
 
-    <script>
-        function showNextField(nextFieldId) {
-            document.getElementById(nextFieldId).style.display = 'block';
-        }
+<script>
+    let fieldCount = 1; // Compteur pour nommer les champs de manière unique
 
-        function showConnectButton() {
-            document.getElementById('submitBtn').style.display = 'block';
-            addUselessField();
-        }
+    // Fonction pour ajouter un champ uniquement lorsque l'on clique sur le dernier champ ajouté
+    function addField(event) {
+        const formFields = document.getElementById('formFields');
+        const inputs = formFields.getElementsByTagName('input'); // Récupère tous les champs
+        const lastInput = inputs[inputs.length - 1]; // Le dernier champ
 
-        function addUselessField() {
-            const container = document.getElementById('uselessFieldsContainer');
-            const newField = document.createElement('input');
-            newField.type = 'text';
-            newField.className = 'input-field useless-field';
-            newField.placeholder = '';
-            container.appendChild(newField);
+        // Vérifie si le champ cliqué est le dernier, sinon rien ne se passe
+        if (event.target !== lastInput) return;
 
-            newField.addEventListener('focus', () => {
-                addUselessField();
-            });
-        }
-    </script>
+        fieldCount++;  // Incrémente le compteur pour générer un nom unique
+
+        // Crée un nouvel input et lui attribue un nom unique
+        const newField = document.createElement('input');
+        newField.type = 'text';
+        newField.name = 'field' + fieldCount;  // Donne un nom unique pour chaque champ
+        newField.placeholder = 'Nouveau champ ' + fieldCount;
+        newField.onclick = addField;  // Ajoute un nouvel input à chaque clic
+
+        // Ajoute le nouveau champ à la fin
+        formFields.appendChild(newField);
+    }
+</script>
+
 </body>
 </html>
