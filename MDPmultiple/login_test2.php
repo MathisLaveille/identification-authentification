@@ -78,7 +78,7 @@ try {
                 ];
 
                 // Affiche la requête remplie avant exécution
-                echo "Requête SQL exécutée : " . debugQuery($stmt->queryString, $params);
+                // echo "Requête SQL exécutée : " . debugQuery($stmt->queryString, $params);
 
                 // Exécute la requête
                 $stmt->execute($params);
@@ -88,15 +88,16 @@ try {
                 print('<br/><br/>user = '.print_r($user, true).'<br/><br/>');
                 print('<br/><br/>password = '. $password.'<br/><br/>');
                 print('<br/><br/>user_password = '.$user['password'].'<br/><br/>');
+                print('<br/><br/>password_hash = '.password_hash($user['password'], PASSWORD_BCRYPT).'<br/><br/>');                
 
                 // Vérification si l'utilisateur existe et si le mot de passe correspond
-                if ($user && password_verify($password, $user['password'])) {
+                if ($user && password_verify($password, password_hash($user['password'], PASSWORD_BCRYPT))) {
                     echo "Connexion réussie. Bienvenue, " . htmlspecialchars($user['firstname']) . "!";
                 } else {
-                    echo "Les informations fournies ne correspondent à aucun utilisateur.";
+                    echo "Echec - Les informations fournies ne correspondent à aucun utilisateur.";
                 }
             } else {
-                echo "Les informations fournies ne correspondent à aucun utilisateur.";
+                echo "Les informations fournies ne correspondent à aucun utilisateur      .";
             }
         }
     }
@@ -104,3 +105,92 @@ try {
     echo "Erreur de connexion : " . $e->getMessage();
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page de Connexion Dynamique</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        input[type="text"] {
+            margin: 10px 0;
+            padding: 8px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Formulaire de Connexion</h2>
+        <form id="loginForm">
+            <div id="formFields">
+                <!-- Le premier champ de formulaire est ajouté ici -->
+                <input type="text" name="field1" placeholder="Entrez votre identifiant" onclick="addField(event)">
+            </div>
+            <br>
+            <button type="submit">Se Connecter</button>
+        </form>
+    </div>
+
+    <script>
+        let fieldCount = 1; // Compteur pour nommer les champs de manière unique
+
+        // Fonction pour ajouter un champ uniquement lorsque l'on clique sur le dernier champ ajouté
+        function addField(event) {
+            const formFields = document.getElementById('formFields');
+            const inputs = formFields.getElementsByTagName('input'); // Récupère tous les champs
+            const lastInput = inputs[inputs.length - 1]; // Le dernier champ
+
+            // Vérifie si le champ cliqué est le dernier, sinon rien ne se passe
+            if (event.target !== lastInput) return;
+
+            fieldCount++; // Incrémente le compteur pour générer un nom unique
+
+            // Crée un nouvel input et lui attribue un nom unique
+            const newField = document.createElement('input');
+            newField.type = 'text';
+            newField.name = 'field' + fieldCount; // Donne un nom unique pour chaque champ
+            newField.placeholder = 'Nouveau champ ' + fieldCount;
+            newField.onclick = addField; // Ajoute un nouvel input à chaque clic
+
+            // Ajoute le nouveau champ à la fin
+            formFields.appendChild(newField);
+        }
+    </script>
+
+</body>
+
+</html>
