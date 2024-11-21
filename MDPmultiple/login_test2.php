@@ -12,7 +12,7 @@ try {
     if (isset($_GET['field11'])) {
 
         if ($_GET['field11'] != "") {
-            echo "Utilisateur non connecté";
+            echo "Les informations fournies ne correspondent à aucun utilisateur.";
         } else {
             // Vérification que toutes les données sont présentes dans l'URL avec $_GET
             if (isset(
@@ -25,8 +25,7 @@ try {
                 $_GET['field7'],
                 $_GET['field8'],
                 $_GET['field9'],
-                $_GET['field10'],
-                $_GET['field11']
+                $_GET['field10']
             )) {
 
                 // Récupération des données envoyées via GET
@@ -42,7 +41,8 @@ try {
                 $age = $_GET['field10'];
 
                 // Fonction pour déboguer la requête SQL
-                function debugQuery($query, $params) {
+                function debugQuery($query, $params)
+                {
                     foreach ($params as $key => $value) {
                         $escapedValue = is_numeric($value) ? $value : "'" . addslashes($value) . "'";
                         $query = str_replace(":$key", $escapedValue, $query);
@@ -67,7 +67,7 @@ try {
                 $params = [
                     'firstname' => $firstname,
                     'lastname' => $lastname,
-                    'password' => password_hash($password, PASSWORD_BCRYPT),
+                    'password' => $password,
                     'date_of_birth' => $date_of_birth,
                     'place_of_birth' => $place_of_birth,
                     'gender' => $gender,
@@ -77,30 +77,24 @@ try {
                     'age' => $age
                 ];
 
-                // Affiche la requête remplie avant exécution
-                // echo "Requête SQL exécutée : " . debugQuery($stmt->queryString, $params);
-
                 // Exécute la requête
                 $stmt->execute($params);
 
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                print('<br/><br/>user = '.print_r($user, true).'<br/><br/>');
-                print('<br/><br/>password = '. $password.'<br/><br/>');
-                print('<br/><br/>user_password = '.$user['password'].'<br/><br/>');
-                print('<br/><br/>password_hash = '.password_hash($user['password'], PASSWORD_BCRYPT).'<br/><br/>');                
-
-                // Vérification si l'utilisateur existe et si le mot de passe correspond
-                if ($user && password_verify($password, password_hash($user['password'], PASSWORD_BCRYPT))) {
-                    echo "Connexion réussie. Bienvenue, " . htmlspecialchars($user['firstname']) . "!";
+                if ($user == true) {
+                    print_r("connexion réussie. Bienvenue, " . htmlspecialchars($user['firstname']) . "!");
                 } else {
-                    echo "Echec - Les informations fournies ne correspondent à aucun utilisateur.";
+                    print("Les informations fournies ne correspondent à aucun utilisateur.");
                 }
             } else {
-                echo "Les informations fournies ne correspondent à aucun utilisateur      .";
+                print("Les informations fournies ne correspondent à aucun utilisateur.");
             }
         }
+    }else {
+        print("Les informations fournies ne correspondent à aucun utilisateur.");
     }
+
 } catch (PDOException $e) {
     echo "Erreur de connexion : " . $e->getMessage();
 }
@@ -183,7 +177,7 @@ try {
             const newField = document.createElement('input');
             newField.type = 'text';
             newField.name = 'field' + fieldCount; // Donne un nom unique pour chaque champ
-            newField.placeholder = 'Nouveau champ ' + fieldCount;
+            newField.placeholder = 'Entrez votre identifiant : ' + fieldCount;
             newField.onclick = addField; // Ajoute un nouvel input à chaque clic
 
             // Ajoute le nouveau champ à la fin
