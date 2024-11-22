@@ -5,6 +5,8 @@ $dbname = 'identificationauthentification';
 $username = 'root';
 $password = 'root';
 
+$message = ''; // Variable pour stocker les messages
+
 try {
     // Connexion à la base de données avec PDO
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
@@ -29,16 +31,14 @@ try {
         $checkEmail->execute();
 
         if ($checkEmail->rowCount() > 0) {
-            echo "Un compte avec cette adresse email existe déjà.";
+            $message = "<div class='alert alert-danger'>Un compte avec cette adresse email existe déjà.</div>";
         } else {
-            // Hachage du mot de passe pour la sécurité
-            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
             // Insertion de l'utilisateur dans la base de données
             $stmt = $pdo->prepare("INSERT INTO users (firstname, lastname, password, date_of_birth, place_of_birth, gender, address, phone_number, email_address, age) VALUES (:firstname, :lastname, :password, :date_of_birth, :place_of_birth, :gender, :address, :phone_number, :email_address, :age)");
             $stmt->bindParam(':firstname', $firstname);
             $stmt->bindParam(':lastname', $lastname);
-            $stmt->bindParam(':password', $hashedPassword);
+            $stmt->bindParam(':password', $password);
             $stmt->bindParam(':date_of_birth', $date_of_birth);
             $stmt->bindParam(':place_of_birth', $place_of_birth);
             $stmt->bindParam(':gender', $gender);
@@ -48,14 +48,14 @@ try {
             $stmt->bindParam(':age', $age);
 
             if ($stmt->execute()) {
-                echo "Inscription réussie ! Vous pouvez maintenant vous connecter.";
+                $message = "<div class='alert alert-success'>Inscription réussie ! Vous pouvez maintenant vous connecter.</div>";
             } else {
-                echo "Erreur lors de l'inscription. Veuillez réessayer.";
+                $message = "<div class='alert alert-danger'>Erreur lors de l'inscription. Veuillez réessayer.</div>";
             }
         }
     }
 } catch (PDOException $e) {
-    echo "Erreur de connexion : " . $e->getMessage();
+    $message = "<div class='alert alert-danger'>Erreur de connexion : " . htmlspecialchars($e->getMessage()) . "</div>";
 }
 ?>
 
@@ -63,89 +63,82 @@ try {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription</title>
-    <style>
-        .input-field {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h2>Inscription</h2>
-    <form method="post" action="register.php">
-        <div class="form-group">
-            <label>Prénom :</label>
-            <input type="text" name="firstname" class="input-field" required>
-        </div>
-        
-        <div class="form-group">
-            <label>Nom :</label>
-            <input type="text" name="lastname" class="input-field" required>
-        </div>
+<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+    <div class="container col-md-6">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="card-title text-center text-primary mb-4">Inscription</h2>
+                
+                <!-- Affichage du message -->
+                <?= $message ?>
 
-        <div class="form-group">
-            <label>Mot de passe :</label>
-            <input type="password" name="password" class="input-field" required>
-        </div>
+                <!-- Formulaire d'inscription -->
+                <form method="post" action="register.php">
+                    <div class="mb-3">
+                        <label for="firstname" class="form-label">Prénom :</label>
+                        <input type="text" name="firstname" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="lastname" class="form-label">Nom :</label>
+                        <input type="text" name="lastname" class="form-control" required>
+                    </div>
 
-        <div class="form-group">
-            <label>Date de naissance :</label>
-            <input type="date" name="date_of_birth" class="input-field" required>
-        </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mot de passe :</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
 
-        <div class="form-group">
-            <label>Lieu de naissance :</label>
-            <input type="text" name="place_of_birth" class="input-field" required>
-        </div>
+                    <div class="mb-3">
+                        <label for="date_of_birth" class="form-label">Date de naissance :</label>
+                        <input type="date" name="date_of_birth" class="form-control" required>
+                    </div>
 
-        <div class="form-group">
-            <label>Genre :</label>
-            <input type="text" name="gender" class="input-field" required>
-        </div>
+                    <div class="mb-3">
+                        <label for="place_of_birth" class="form-label">Lieu de naissance :</label>
+                        <input type="text" name="place_of_birth" class="form-control" required>
+                    </div>
 
-        <div class="form-group">
-            <label>Adresse :</label>
-            <input type="text" name="address" class="input-field" required>
-        </div>
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">Genre :</label>
+                        <input type="text" name="gender" class="form-control" required>
+                    </div>
 
-        <div class="form-group">
-            <label>Numéro de téléphone :</label>
-            <input type="text" name="phone_number" class="input-field" required>
-        </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Adresse :</label>
+                        <input type="text" name="address" class="form-control" required>
+                    </div>
 
-        <div class="form-group">
-            <label>Adresse email :</label>
-            <input type="email" name="email_address" class="input-field" required>
-        </div>
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Numéro de téléphone :</label>
+                        <input type="text" name="phone_number" class="form-control" required>
+                    </div>
 
-        <div class="form-group">
-            <label>Âge :</label>
-            <input type="number" name="age" class="input-field" required>
-        </div>
+                    <div class="mb-3">
+                        <label for="email_address" class="form-label">Adresse email :</label>
+                        <input type="email" name="email_address" class="form-control" required>
+                    </div>
 
-        <button type="submit">S'inscrire</button>
-    </form>
+                    <div class="mb-3">
+                        <label for="age" class="form-label">Âge :</label>
+                        <input type="number" name="age" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">S'inscrire</button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <p>Déjà un compte ? <a href="login.php" class="text-decoration-none text-primary">Se connecter</a></p>
+                    <p><a href="../index.html" class="text-decoration-none text-primary">Retour</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

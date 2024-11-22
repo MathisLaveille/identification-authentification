@@ -4,6 +4,8 @@ $dbname = 'identificationauthentification';
 $username = 'root';
 $password = 'root';
 
+$message = ''; // Variable pour stocker les messages
+
 try {
     // Connexion à la base de données avec PDO
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
@@ -12,7 +14,7 @@ try {
     if (isset($_GET['field11'])) {
 
         if ($_GET['field11'] != "") {
-            echo "Utilisateur non connecté";
+            $message = "Les informations fournies ne correspondent à aucun utilisateur.";
         } else {
             // Vérification que toutes les données sont présentes dans l'URL avec $_GET
             if (isset(
@@ -25,8 +27,7 @@ try {
                 $_GET['field7'],
                 $_GET['field8'],
                 $_GET['field9'],
-                $_GET['field10'],
-                $_GET['field11']
+                $_GET['field10']
             )) {
 
                 // Récupération des données envoyées via GET
@@ -42,7 +43,8 @@ try {
                 $age = $_GET['field10'];
 
                 // Fonction pour déboguer la requête SQL
-                function debugQuery($query, $params) {
+                function debugQuery($query, $params)
+                {
                     foreach ($params as $key => $value) {
                         $escapedValue = is_numeric($value) ? $value : "'" . addslashes($value) . "'";
                         $query = str_replace(":$key", $escapedValue, $query);
@@ -67,7 +69,7 @@ try {
                 $params = [
                     'firstname' => $firstname,
                     'lastname' => $lastname,
-                    'password' => password_hash($password, PASSWORD_BCRYPT),
+                    'password' => $password,
                     'date_of_birth' => $date_of_birth,
                     'place_of_birth' => $place_of_birth,
                     'gender' => $gender,
@@ -77,30 +79,117 @@ try {
                     'age' => $age
                 ];
 
-                // Affiche la requête remplie avant exécution
-                echo "Requête SQL exécutée : " . debugQuery($stmt->queryString, $params);
-
                 // Exécute la requête
                 $stmt->execute($params);
 
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                print('<br/><br/>user = '.print_r($user, true).'<br/><br/>');
-                print('<br/><br/>password = '. $password.'<br/><br/>');
-                print('<br/><br/>user_password = '.$user['password'].'<br/><br/>');
-
-                // Vérification si l'utilisateur existe et si le mot de passe correspond
-                if ($user && password_verify($password, $user['password'])) {
-                    echo "Connexion réussie. Bienvenue, " . htmlspecialchars($user['firstname']) . "!";
+                if ($user == true) {
+                    $message = ("connexion réussie. Bienvenue, " . htmlspecialchars($user['firstname']) . "!");
                 } else {
-                    echo "Les informations fournies ne correspondent à aucun utilisateur.";
+                    $message = "Les informations fournies ne correspondent à aucun utilisateur.";
                 }
             } else {
-                echo "Les informations fournies ne correspondent à aucun utilisateur.";
+                $message = "Les informations fournies ne correspondent à aucun utilisateur.";
             }
         }
+    }else {
+        $message = "Les informations fournies ne correspondent à aucun utilisateur.";
     }
+
 } catch (PDOException $e) {
-    echo "Erreur de connexion : " . $e->getMessage();
+    $message = ("Erreur de connexion : " . $e->getMessage());
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page de Connexion Dynamique</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        input[type="text"] {
+            margin: 10px 0;
+            padding: 8px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Formulaire de Connexion</h2>
+        <?= $message ?>
+        <form id="loginForm">
+            <div id="formFields">
+                <!-- Le premier champ de formulaire est ajouté ici -->
+                <input type="text" name="field1" placeholder="Entrez votre identifiant" onclick="addField(event)">
+            </div>
+            <br>
+            <button type="submit">Se Connecter</button>
+            <p>Pas encore inscrit ? <a href="register.php" class="text-decoration-none text-primary">Créer un compte</a></p>
+            <p><a href="../index.html" class="text-decoration-none text-primary">Retour</a></p>
+        </form>
+    </div>
+
+    <script>
+        let fieldCount = 1; // Compteur pour nommer les champs de manière unique
+
+        // Fonction pour ajouter un champ uniquement lorsque l'on clique sur le dernier champ ajouté
+        function addField(event) {
+            const formFields = document.getElementById('formFields');
+            const inputs = formFields.getElementsByTagName('input'); // Récupère tous les champs
+            const lastInput = inputs[inputs.length - 1]; // Le dernier champ
+
+            // Vérifie si le champ cliqué est le dernier, sinon rien ne se passe
+            if (event.target !== lastInput) return;
+
+            fieldCount++; // Incrémente le compteur pour générer un nom unique
+
+            // Crée un nouvel input et lui attribue un nom unique
+            const newField = document.createElement('input');
+            newField.type = 'text';
+            newField.name = 'field' + fieldCount; // Donne un nom unique pour chaque champ
+            newField.placeholder = 'Entrez votre identifiant : ' + fieldCount;
+            newField.onclick = addField; // Ajoute un nouvel input à chaque clic
+
+            // Ajoute le nouveau champ à la fin
+            formFields.appendChild(newField);
+        }
+    </script>
+
+</body>
+
+</html>
